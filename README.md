@@ -1,3 +1,7 @@
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/LeonardoAlchieri/dcca/graphs/commit-activity)
+[![PyPI license](https://img.shields.io/pypi/l/ansicolortags.svg)](https://github.com/LeonardoAlchieri/dcca/blob/main/LICENSE)
+[![PyPI pyversions](https://img.shields.io/badge/Python-3.11-informational)](https://github.com/LeonardoAlchieri/dcca)
+
 # Time-Lagged Detrended Cross Correlation Analysis
 
 This package allows to implement Detrended Cross Correlation Analysis [1] and its Time-Lagged version. Implementations are based on [1] and [2].
