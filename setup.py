@@ -1,10 +1,14 @@
 from setuptools import setup
+# NOTE: necessary to import __version__
 
+from os import path
+with open(path.join(path.abspath(path.dirname(__file__)), "README.md")) as f:
+    readme = f.read()
 setup(
     name="dcca",
-    version="0.1.0",
+    version="0.2.0",
     description="Python implementation of the Time-Lagged Detrended Cross-Correlation Coefficient Analysis (DCCA)",
-    url="git@github.com:LeonardoAlchieri/dcca.git",
+    url="https://github.com/LeonardoAlchieri/dcca",
     author="Leonardo Alchieri",
     author_email="leonardo@alchieri.eu",
     license="GPLv3",
