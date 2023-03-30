@@ -1,4 +1,4 @@
-from numpy import arange, mean, ndarray, sqrt, stack, sum
+from numpy import apply_along_axis, arange, mean, ndarray, sqrt, stack, sum
 from numpy.lib.stride_tricks import as_strided
 from numpy.polynomial.polynomial import polyfit, polyval
 
@@ -122,7 +122,12 @@ def fddca_computation(
 
 
 def compute_FDCCA_squared(
-    x: ndarray, y: ndarray, time_scale: int, time_lag: int, N: int | None = None
+    x: ndarray,
+    y: ndarray,
+    time_scale: int,
+    time_lag: int,
+    time_lag_y: int | None = None,
+    N: int | None = None,
 ) -> float:
     """This method computes, for a given x and y time series, its FDCCA² value. Since
     the measure depends on a time scale and a time lag, these parameters are also required.
@@ -142,6 +147,11 @@ def compute_FDCCA_squared(
         time scale, i.e., the size of the boxes over which to perform the detrending
     time_lag : int
         time lag over which to shift the second array
+    time_lag_y: int | None
+        time lag over which to shift the second array. This should be used when x and y
+        are the same signal and time_lag is given as 0. It allows to match the
+        time lag of the convariance, and consider the same time series and
+        performing analysis. Without its usage, results may be wrong.
     N : int, optional
         number of points in the series. If None, it will be inferred from the `series` parameter
 
@@ -155,18 +165,25 @@ def compute_FDCCA_squared(
     mean_y: float = mean(y)
     if N is None:
         N = len(x)
-    # the size of the box is n+1 and the numbero of boxes is N - n - τ
-    x_boxes = make_series_boxes(series=x, time_scale=time_scale, time_lag=time_lag, N=N)
     # TODO: check that I am actually doing this correctly
     # NOTE: I rescale the second one since I have to move by tau
     # However, the rescalin will impact the calculation of the mean, as such
     # it is computed beforehand. This impact is larger the larger the
     # time lag is
-    y = y[(time_lag):]
+    if time_lag_y is None:
+        y = y[(time_lag):]
+    elif time_lag_y > 0:
+        y = y[(time_lag_y):]
+        x = x[(time_lag_y):]
+    # the size of the box is n+1 and the numbero of boxes is N - n - τ
+    x_boxes = make_series_boxes(series=x, time_scale=time_scale, time_lag=time_lag, N=N)
     y_boxes = make_series_boxes(series=y, time_scale=time_scale, time_lag=time_lag, N=N)
     x_boxes_integrated: ndarray = x_boxes - mean_x.reshape(1, -1)
     y_boxes_integrated: ndarray = y_boxes - mean_y.reshape(1, -1)
-
+    # x_boxes_integrated: ndarray = apply_along_axis(integrate_series, 1, x_boxes, mean_x)
+    # y_boxes_integrated: ndarray = apply_along_axis(integrate_series, 1, y_boxes, mean_y)
+    # x_local_detrend = apply_along_axis(get_local_detrend, 1, x_boxes_integrated)
+    # y_local_detrend = apply_along_axis(get_local_detrend, 1, y_boxes_integrated)
     x_local_detrend = get_local_detrend(x_boxes_integrated)
     y_local_detrend = get_local_detrend(y_boxes_integrated)
 
@@ -179,6 +196,7 @@ def compute_FDCCA_squared(
     FDCCA_squared = fddca_computation(
         boxes_residuals=boxes_residuals, time_scale=time_scale
     ) / (N - time_scale - time_lag)
+    # -0.0013385811760114692
     return FDCCA_squared
 
 
@@ -221,7 +239,7 @@ def detrended_correlation(
             )
         )
     FDCCA_xy_squared = compute_FDCCA_squared(x, y, time_scale, time_lag)
-    FDCCA_xx_squared = compute_FDCCA_squared(x, x, time_scale, 0)
-    FDCCA_yy_squared = compute_FDCCA_squared(y, y, time_scale, 0)
+    FDCCA_xx_squared = compute_FDCCA_squared(x, x, time_scale, 0, time_lag)
+    FDCCA_yy_squared = compute_FDCCA_squared(y, y, time_scale, 0, time_lag)
 
     return FDCCA_xy_squared / (sqrt(FDCCA_xx_squared) * sqrt(FDCCA_yy_squared))
