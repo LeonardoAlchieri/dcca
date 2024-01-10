@@ -30,7 +30,7 @@ from numpy.random import rand
 x: ndarray = rand(100)
 y: ndarray = rand(100)
 time_lags: list[int] = range(0, 10)
-dccas = [detrended_correlation(x=x, y=y, time_scale=3, time_lag=0) for time_lag in time_lags]
+dccas = [detrended_correlation(x=x, y=y, time_scale=3, time_lag=time_lag) for time_lag in time_lags]
 ```
 In the example provided, the coefficient is always going to be the same, since the arrays are randomly sampled.
 
